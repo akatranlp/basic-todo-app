@@ -1,0 +1,29 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=Europe/Berlin
+    links:
+      - "db:database"
+    ports:
+      - 8080:8080
+    depends_on:
+     - db
+    restart: unless-stopped
+  db:
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=Europe/Berlin
+    restart: unless-stopped
+volumes:
+  postgres_data:
