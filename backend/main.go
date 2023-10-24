@@ -9,12 +9,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Todo struct {
-	gorm.Model
-	Name   string `json:"name"`
-	Status bool   `json:"status" gorm:"default:true"`
+	ID        uint `json:"id" gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Name      string `json:"name"`
+	Status    bool   `json:"status" gorm:"default:true"`
 }
 
 type UpdateTodo struct {
@@ -51,7 +54,10 @@ func main() {
 		if err := c.BodyParser(todo); err != nil {
 			return c.Status(400).SendString(err.Error())
 		}
-		db.Create(&todo)
+		result := db.Create(&todo)
+		if result.RowsAffected == 0 {
+			return c.SendStatus(http.StatusBadRequest)
+		}
 		return c.Status(http.StatusCreated).JSON(todo)
 	})
 
@@ -61,7 +67,7 @@ func main() {
 
 	app.Get("/api/v1/todos", func(c *fiber.Ctx) error {
 		var todos []Todo
-		db.Find(&todos)
+		db.Order("id").Find(&todos)
 		return c.Status(http.StatusOK).JSON(todos)
 	})
 
